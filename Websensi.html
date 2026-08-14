@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Sensibilidad para Teléfonos</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-color: #6366f1;
+            --accent-hover: #4f46e5;
+            --text-color: #f8fafc;
+            --text-secondary: #94a3b8;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            margin-top: 0;
+            color: #fff;
+            font-size: 1.8rem;
+        }
+
+        p.subtitle {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background-color: #0f172a;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        select:focus {
+            border-color: var(--accent-color);
+        }
+
+        .btn-generate {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .btn-generate:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .btn-generate:active {
+            transform: scale(0.98);
+        }
+
+        .result-container {
+            margin-top: 30px;
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #334155;
+            color: #fff;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        td {
+            background-color: #0f172a;
+            border-bottom: 1px solid #1e293b;
+            font-weight: 600;
+            color: #38bdf8;
+        }
+
+        .loader {
+            display: none;
+            margin: 20px auto;
+            border: 4px solid #334155;
+            border-top: 4px solid var(--accent-color);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Generador de Sensibilidad</h1>
+    <p class="subtitle">Selecciona tu marca para optimizar la configuración</p>
+
+    <div class="form-group">
+        <label for="brandSelect">Marca de dispositivo:</label>
+        <select id="brandSelect">
+            <option value="" disabled selected>-- Selecciona una marca --</option>
+            <option value="Samsung">Samsung</option>
+            <option value="Xiaomi">Xiaomi / Redmi / Poco</option>
+            <option value="iPhone">Apple (iPhone)</option>
+            <option value="Motorola">Motorola</option>
+            <option value="Realme">Realme</option>
+            <option value="OPPO">OPPO</option>
+            <option value="Vivo">Vivo</option>
+            <option value="Huawei">Huawei</option>
+            <option value="Infinix">Infinix</option>
+            <option value="Tecno">Tecno Mobile</option>
+        </select>
+    </div>
+
+    <button class="btn-generate" onclick="generateSensitivity()">Generar Configuración</button>
+
+    <div class="loader" id="loader"></div>
+
+    <div class="result-container" id="resultContainer">
+        <h3 id="selectedBrandTitle" style="margin-bottom: 5px;"></h3>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0;">Ajustes recomendados:</p>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Ajuste</th>
+                    <th>Valor Optimizado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>General</td>
+                    <td id="valGeneral">-</td>
+                </tr>
+                <tr>
+                    <td>Mira Roja</td>
+                    <td id="valRedDot">-</td>
+                </tr>
+                <tr>
+                    <td>Mira 2x</td>
+                    <td id="val2x">-</td>
+                </tr>
+                <tr>
+                    <td>Mira 4x</td>
+                    <td id="val4x">-</td>
+                </tr>
+                <tr>
+                    <td>Mira AWM</td>
+                    <td id="valAwm">-</td>
+                </tr>
+                <tr>
+                    <td>DPI Recomendado</td>
+                    <td id="valDpi">-</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function getRandomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function generateSensitivity() {
+        const brandSelect = document.getElementById('brandSelect');
+        const selectedBrand = brandSelect.value;
+        
+        if (!selectedBrand) {
+            alert('Por favor, selecciona una marca de teléfono primero.');
+            return;
+        }
+
+        const loader = document.getElementById('loader');
+        const resultContainer = document.getElementById('resultContainer');
+        
+        resultContainer.style.display = 'none';
+        loader.style.display = 'block';
+
+        setTimeout(() => {
+            loader.style.display = 'none';
+
+            document.getElementById('selectedBrandTitle').textContent = `Sensibilidad para ${selectedBrand}`;
+            document.getElementById('valGeneral').textContent = getRandomInt(92, 100);
+            document.getElementById('valRedDot').textContent = getRandomInt(85, 98);
+            document.getElementById('val2x').textContent = getRandomInt(80, 95);
+            document.getElementById('val4x').textContent = getRandomInt(75, 92);
+            document.getElementById('valAwm').textContent = getRandomInt(45, 60);
+            
+            if (selectedBrand === 'iPhone') {
+                document.getElementById('valDpi').textContent = 'Sensibilidad Máxima (Ajuste iOS)';
+            } else {
+                document.getElementById('valDpi').textContent = getRandomInt(410, 600) + ' DPI';
+            }
+
+            resultContainer.style.display = 'block';
+        }, 800);
+    }
+</script>
+
+</body>
+</html>
