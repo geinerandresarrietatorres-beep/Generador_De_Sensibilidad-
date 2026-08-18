@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de Sensibilidad para todos los Teléfonos</title>
-    <meta name="description" content="Herramienta para generar sensibilidades de dispositivos para el juego free fire">
-<meta name="description" content="Herramienta para generar sensibilidades de dispositivos para el juego free fire">
-<meta name="keywords" content="generador de sensi 2026">     
-    <style> :root {
+    <title>Generador de Sensibilidad Free Fire</title>
+    <style>
+        :root {
             --bg-color: #0f172a;
             --card-bg: #1e293b;
             --accent-color: #6366f1;
@@ -16,11 +14,16 @@
             --text-secondary: #94a3b8;
         }
 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
-            margin: 0;
             padding: 20px;
             display: flex;
             justify-content: center;
@@ -42,6 +45,7 @@
             margin-top: 0;
             color: #fff;
             font-size: 1.8rem;
+            margin-bottom: 8px;
         }
 
         p.subtitle {
@@ -127,7 +131,7 @@
         th {
             background-color: #334155;
             color: #fff;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             text-transform: uppercase;
         }
 
@@ -136,6 +140,7 @@
             border-bottom: 1px solid #1e293b;
             font-weight: 600;
             color: #38bdf8;
+            font-size: 1rem;
         }
 
         .loader {
@@ -153,16 +158,23 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        .note {
+            margin-top: 15px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Generador de Sensibilidad</h1>
-    <p class="subtitle">Selecciona tu marca para optimizar la configuración</p>
+    <h1>🎮 Generador de Sensibilidad</h1>
+    <p class="subtitle">Selecciona tu marca → Genera valores de 0 a 200 (Free Fire)</p>
 
     <div class="form-group">
-        <label for="brandSelect">Marca de dispositivo:</label>
+        <label for="brandSelect">📱 Marca de dispositivo:</label>
         <select id="brandSelect">
             <option value="" disabled selected>-- Selecciona una marca --</option>
             <option value="Samsung">Samsung</option>
@@ -178,48 +190,54 @@
         </select>
     </div>
 
-    <button class="btn-generate" onclick="generateSensitivity()">Generar Configuración</button>
+    <button class="btn-generate" onclick="generateSensitivity()">⚡ Generar Configuración</button>
 
     <div class="loader" id="loader"></div>
 
     <div class="result-container" id="resultContainer">
         <h3 id="selectedBrandTitle" style="margin-bottom: 5px;"></h3>
-        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0;">Ajustes recomendados:</p>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0;">Valores optimizados (0 - 200):</p>
         
         <table>
             <thead>
                 <tr>
                     <th>Ajuste</th>
-                    <th>Valor Optimizado</th>
+                    <th>Valor</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td>General</td>
+                    <td>🎯 General</td>
                     <td id="valGeneral">-</td>
                 </tr>
                 <tr>
-                    <td>Mira Roja</td>
+                    <td>🔴 Mira Roja</td>
                     <td id="valRedDot">-</td>
                 </tr>
                 <tr>
-                    <td>Mira 2x</td>
+                    <td>🔭 Mira 2x</td>
                     <td id="val2x">-</td>
                 </tr>
                 <tr>
-                    <td>Mira 4x</td>
+                    <td>🔭 Mira 4x</td>
                     <td id="val4x">-</td>
                 </tr>
                 <tr>
-                    <td>Mira AWM</td>
+                    <td>🎯 Mira AWM</td>
                     <td id="valAwm">-</td>
                 </tr>
                 <tr>
-                    <td>DPI Recomendado</td>
+                    <td>🔄 Cámara 360°</td>
+                    <td id="valCam360">-</td>
+                </tr>
+                <tr>
+                    <td>📊 DPI Recomendado</td>
                     <td id="valDpi">-</td>
                 </tr>
             </tbody>
         </table>
+
+        <p class="note">💡 Recuerda: Estos valores son una base. Ajusta según tu estilo de juego y tamaño de pantalla.</p>
     </div>
 </div>
 
@@ -233,7 +251,7 @@
         const selectedBrand = brandSelect.value;
         
         if (!selectedBrand) {
-            alert('Por favor, selecciona una marca de teléfono primero.');
+            alert('⚠️ Por favor, selecciona una marca de teléfono primero.');
             return;
         }
 
@@ -246,21 +264,24 @@
         setTimeout(() => {
             loader.style.display = 'none';
 
-            document.getElementById('selectedBrandTitle').textContent = `Sensibilidad para ${selectedBrand}`;
-            document.getElementById('valGeneral').textContent = getRandomInt(92, 100);
-            document.getElementById('valRedDot').textContent = getRandomInt(85, 98);
-            document.getElementById('val2x').textContent = getRandomInt(80, 95);
-            document.getElementById('val4x').textContent = getRandomInt(75, 92);
-            document.getElementById('valAwm').textContent = getRandomInt(45, 60);
+            document.getElementById('selectedBrandTitle').textContent = `📱 ${selectedBrand}`;
+            
+            // Valores entre 0 y 200, con rangos realistas por tipo de mira
+            document.getElementById('valGeneral').textContent = getRandomInt(180, 200);
+            document.getElementById('valRedDot').textContent = getRandomInt(160, 195);
+            document.getElementById('val2x').textContent = getRandomInt(140, 180);
+            document.getElementById('val4x').textContent = getRandomInt(120, 165);
+            document.getElementById('valAwm').textContent = getRandomInt(50, 90);
+            document.getElementById('valCam360').textContent = getRandomInt(150, 200);
             
             if (selectedBrand === 'iPhone') {
-                document.getElementById('valDpi').textContent = 'Sensibilidad Máxima (Ajuste iOS)';
+                document.getElementById('valDpi').textContent = 'Ajuste máximo (iOS)';
             } else {
-                document.getElementById('valDpi').textContent = getRandomInt(410, 600) + ' DPI';
+                document.getElementById('valDpi').textContent = getRandomInt(450, 600) + ' DPI';
             }
 
             resultContainer.style.display = 'block';
-        }, 800);
+        }, 1000);
     }
 </script>
 
