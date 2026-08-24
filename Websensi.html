@@ -7,7 +7,7 @@
     <style>
         :root {
             --bg-color: #0f172a;
-            --card-bg: #1e293b;
+            --card-bg: rgba(30, 41, 59, 0.92);
             --accent-color: #6366f1;
             --accent-hover: #4f46e5;
             --text-color: #f8fafc;
@@ -22,7 +22,11 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
+            background-image: linear-gradient(rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.82)), url('https://i.ibb.co/VY96V2k2/images.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
             color: var(--text-color);
             padding: 20px;
             display: flex;
@@ -33,12 +37,14 @@
 
         .container {
             background-color: var(--card-bg);
+            backdrop-filter: blur(8px);
             padding: 30px;
             border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
             max-width: 500px;
             width: 100%;
             text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         h1 {
@@ -83,6 +89,11 @@
             border-color: var(--accent-color);
         }
 
+        select:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         .btn-generate {
             width: 100%;
             padding: 14px;
@@ -102,6 +113,12 @@
 
         .btn-generate:active {
             transform: scale(0.98);
+        }
+
+        .btn-generate:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
         }
 
         .result-container {
@@ -136,7 +153,7 @@
         }
 
         td {
-            background-color: #0f172a;
+            background-color: rgba(15, 23, 42, 0.9);
             border-bottom: 1px solid #1e293b;
             font-weight: 600;
             color: #38bdf8;
@@ -171,11 +188,11 @@
 
 <div class="container">
     <h1>🎮 Generador de Sensibilidad</h1>
-    <p class="subtitle">Selecciona tu marca → Genera valores de 0 a 200 (Free Fire)</p>
+    <p class="subtitle">Selecciona tu marca → Tu modelo → Valores 0 a 200</p>
 
     <div class="form-group">
         <label for="brandSelect">📱 Marca de dispositivo:</label>
-        <select id="brandSelect">
+        <select id="brandSelect" onchange="updateModels()">
             <option value="" disabled selected>-- Selecciona una marca --</option>
             <option value="Samsung">Samsung</option>
             <option value="Xiaomi">Xiaomi / Redmi / Poco</option>
@@ -190,12 +207,19 @@
         </select>
     </div>
 
-    <button class="btn-generate" onclick="generateSensitivity()">⚡ Generar Configuración</button>
+    <div class="form-group">
+        <label for="modelSelect">📲 Modelo del teléfono:</label>
+        <select id="modelSelect" disabled onchange="resetResults()">
+            <option value="" disabled selected>-- Primero selecciona una marca --</option>
+        </select>
+    </div>
+
+    <button class="btn-generate" id="generateBtn" onclick="generateSensitivity()" disabled>⚡ Generar Configuración</button>
 
     <div class="loader" id="loader"></div>
 
-    <div class="result-container" id="resultContainer">
-        <h3 id="selectedBrandTitle" style="margin-bottom: 5px;"></h3>
+    <div class="result-container" id="resultContainer" aria-live="polite">
+        <h3 id="selectedDeviceTitle" style="margin-bottom: 5px;"></h3>
         <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0;">Valores optimizados (0 - 200):</p>
         
         <table>
@@ -223,6 +247,10 @@
                     <td id="val4x">-</td>
                 </tr>
                 <tr>
+                    <td>🎯 Mira Francotirador</td>
+                    <td id="valSniper">-</td>
+                </tr>
+                <tr>
                     <td>🎯 Mira AWM</td>
                     <td id="valAwm">-</td>
                 </tr>
@@ -242,16 +270,110 @@
 </div>
 
 <script>
+    // Base de datos de modelos por marca
+    const modelsByBrand = {
+        Samsung: [
+            "Galaxy A05", "Galaxy A05s", "Galaxy A06", "Galaxy A07",
+            "Galaxy A14", "Galaxy A15", "Galaxy A24", "Galaxy A25",
+            "Galaxy A34", "Galaxy A35", "Galaxy A54", "Galaxy A55",
+            "Galaxy S23 FE", "Galaxy S24", "Galaxy S24+", "Galaxy S24 Ultra",
+            "Galaxy Z Flip 5", "Galaxy Z Fold 5", "Galaxy M14", "Galaxy M34"
+        ],
+        Xiaomi: [
+            "Redmi 12", "Redmi 12C", "Redmi 13", "Redmi 13C", "Redmi Note 12",
+            "Redmi Note 13", "Redmi Note 13 Pro", "Redmi Note 13 Pro+",
+            "Poco C65", "Poco M6", "Poco X6", "Poco X6 Pro",
+            "Xiaomi 13", "Xiaomi 14", "Xiaomi 14T", "Xiaomi 14 Ultra"
+        ],
+        iPhone: [
+            "iPhone SE (3ª gen)", "iPhone 11", "iPhone 12", "iPhone 12 Mini",
+            "iPhone 13", "iPhone 13 Mini", "iPhone 14", "iPhone 14 Plus",
+            "iPhone 15", "iPhone 15 Plus", "iPhone 15 Pro", "iPhone 15 Pro Max",
+            "iPhone 16", "iPhone 16 Plus", "iPhone 16 Pro", "iPhone 16 Pro Max"
+        ],
+        Motorola: [
+            "Moto G24", "Moto G34", "Moto G54", "Moto G64", "Moto G84",
+            "Moto Edge 40 Neo", "Moto Edge 50 Fusion", "Moto Edge 50",
+            "Moto Edge 50 Pro", "Moto G Power", "Moto G Stylus"
+        ],
+        Realme: [
+            "Realme C51", "Realme C53", "Realme C61", "Realme C63",
+            "Realme Note 60", "Realme Note 70", "Realme 11", "Realme 12",
+            "Realme 12 Pro", "Realme 12 Pro+", "Realme GT 6", "Realme GT Neo 6"
+        ],
+        OPPO: [
+            "A15", "A17", "A18", "A38", "A58", "A78",
+            "Reno 11", "Reno 11 Pro", "Reno 12", "Reno 12 Pro",
+            "Find X7", "Find X7 Ultra"
+        ],
+        Vivo: [
+            "Y02", "Y11", "Y17s", "Y22", "Y27", "Y36", "Y56",
+            "V29", "V29e", "V30", "V30 Pro", "V40", "V40 Pro",
+            "X100", "X200 Pro"
+        ],
+        Huawei: [
+            "Nova 11", "Nova 12", "Nova 12i", "Nova 13", "Nova 13 Pro",
+            "P60", "P60 Pro", "Pura 70", "Pura 70 Ultra",
+            "Mate 60", "Mate 60 Pro", "Mate X5"
+        ],
+        Infinix: [
+            "Smart 8", "Smart 9", "Hot 30", "Hot 40", "Hot 40i", "Hot 50",
+            "Note 30", "Note 40", "Note 40 Pro", "Zero 30", "Zero 40"
+        ],
+        Tecno: [
+            "Spark Go", "Spark 20", "Spark 20C", "Spark 30",
+            "Camon 30", "Camon 30 Pro", "Camon 40", "Camon 40 Pro",
+            "Pova 5", "Pova 6", "Phantom V Fold", "Phantom X2"
+        ]
+    };
+
     function getRandomInt(min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
+    function updateModels() {
+        const brandSelect = document.getElementById('brandSelect');
+        const modelSelect = document.getElementById('modelSelect');
+        const generateBtn = document.getElementById('generateBtn');
+        const selectedBrand = brandSelect.value;
+
+        // Limpiar modelos anteriores
+        modelSelect.innerHTML = '<option value="" disabled selected>-- Selecciona un modelo --</option>';
+        modelSelect.disabled = true;
+        generateBtn.disabled = true;
+        resetResults();
+
+        if (selectedBrand && modelsByBrand[selectedBrand]) {
+            // Agregar modelos de la marca seleccionada
+            modelsByBrand[selectedBrand].forEach(modelo => {
+                const option = document.createElement('option');
+                option.value = modelo;
+                option.textContent = modelo;
+                modelSelect.appendChild(option);
+            });
+            modelSelect.disabled = false;
+        }
+    }
+
+    function resetResults() {
+        const resultContainer = document.getElementById('resultContainer');
+        const modelSelect = document.getElementById('modelSelect');
+        const generateBtn = document.getElementById('generateBtn');
+        
+        resultContainer.style.display = 'none';
+        
+        // Habilitar botón solo si hay modelo seleccionado
+        generateBtn.disabled = !modelSelect.value;
+    }
+
     function generateSensitivity() {
         const brandSelect = document.getElementById('brandSelect');
+        const modelSelect = document.getElementById('modelSelect');
         const selectedBrand = brandSelect.value;
+        const selectedModel = modelSelect.value;
         
-        if (!selectedBrand) {
-            alert('⚠️ Por favor, selecciona una marca de teléfono primero.');
+        if (!selectedBrand || !selectedModel) {
+            alert('⚠️ Por favor, selecciona marca y modelo primero.');
             return;
         }
 
@@ -264,20 +386,30 @@
         setTimeout(() => {
             loader.style.display = 'none';
 
-            document.getElementById('selectedBrandTitle').textContent = `📱 ${selectedBrand}`;
+            document.getElementById('selectedDeviceTitle').textContent = `📱 ${selectedBrand} – ${selectedModel}`;
             
-            // Valores entre 0 y 200, con rangos realistas por tipo de mira
-            document.getElementById('valGeneral').textContent = getRandomInt(180, 200);
-            document.getElementById('valRedDot').textContent = getRandomInt(160, 195);
-            document.getElementById('val2x').textContent = getRandomInt(140, 180);
-            document.getElementById('val4x').textContent = getRandomInt(120, 165);
-            document.getElementById('valAwm').textContent = getRandomInt(50, 90);
-            document.getElementById('valCam360').textContent = getRandomInt(150, 200);
+            // Rangos base según tipo de dispositivo
+            const gamaBaja = selectedModel.match(/A0[5-7]|C5[13]|C6[13]|Y0|Y1|Smart|Spark|Hot [34]/i);
+            const gamaAlta = selectedModel.match(/Pro|Ultra|Edge|Find|X[0-9]+|S2[4-5]|iPhone 1[4-6]|GT|Pura|Mate/i);
+
+            let rangoGeneral = gamaAlta ? [170, 200] : (gamaBaja ? [150, 185] : [160, 195]);
+            let rangoDpiMin = gamaAlta ? [440, 520] : (gamaBaja ? [360, 440] : [400, 480]);
+            let rangoDpiMax = gamaAlta ? [550, 700] : (gamaBaja ? [450, 550] : [480, 600]);
+
+            document.getElementById('valGeneral').textContent = getRandomInt(rangoGeneral[0], rangoGeneral[1]);
+            document.getElementById('valRedDot').textContent = getRandomInt(140, 195);
+            document.getElementById('val2x').textContent = getRandomInt(120, 185);
+            document.getElementById('val4x').textContent = getRandomInt(100, 170);
+            document.getElementById('valSniper').textContent = getRandomInt(60, 120);
+            document.getElementById('valAwm').textContent = getRandomInt(40, 100);
+            document.getElementById('valCam360').textContent = getRandomInt(130, 200);
             
             if (selectedBrand === 'iPhone') {
                 document.getElementById('valDpi').textContent = 'Ajuste máximo (iOS)';
             } else {
-                document.getElementById('valDpi').textContent = getRandomInt(450, 600) + ' DPI';
+                const minDpi = getRandomInt(rangoDpiMin[0], rangoDpiMin[1]);
+                const maxDpi = minDpi + getRandomInt(rangoDpiMax[0] - minDpi, rangoDpiMax[1] - minDpi);
+                document.getElementById('valDpi').textContent = `${minDpi} - ${maxDpi} DPI`;
             }
 
             resultContainer.style.display = 'block';
