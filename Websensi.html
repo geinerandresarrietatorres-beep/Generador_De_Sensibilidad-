@@ -235,7 +235,7 @@
                     <td id="valGeneral">-</td>
                 </tr>
                 <tr>
-                    <td>🔴 Mira Roja</td>
+                    <td>🔴 Mira de Punto Rojo</td>
                     <td id="valRedDot">-</td>
                 </tr>
                 <tr>
@@ -249,10 +249,6 @@
                 <tr>
                     <td>🎯 Mira Francotirador</td>
                     <td id="valSniper">-</td>
-                </tr>
-                <tr>
-                    <td>🎯 Mira AWM</td>
-                    <td id="valAwm">-</td>
                 </tr>
                 <tr>
                     <td>🔄 Cámara 360°</td>
@@ -270,7 +266,6 @@
 </div>
 
 <script>
-    // Base de datos de modelos por marca
     const modelsByBrand = {
         Samsung: [
             "Galaxy A05", "Galaxy A05s", "Galaxy A06", "Galaxy A07",
@@ -337,14 +332,12 @@
         const generateBtn = document.getElementById('generateBtn');
         const selectedBrand = brandSelect.value;
 
-        // Limpiar modelos anteriores
         modelSelect.innerHTML = '<option value="" disabled selected>-- Selecciona un modelo --</option>';
         modelSelect.disabled = true;
         generateBtn.disabled = true;
         resetResults();
 
         if (selectedBrand && modelsByBrand[selectedBrand]) {
-            // Agregar modelos de la marca seleccionada
             modelsByBrand[selectedBrand].forEach(modelo => {
                 const option = document.createElement('option');
                 option.value = modelo;
@@ -361,8 +354,6 @@
         const generateBtn = document.getElementById('generateBtn');
         
         resultContainer.style.display = 'none';
-        
-        // Habilitar botón solo si hay modelo seleccionado
         generateBtn.disabled = !modelSelect.value;
     }
 
@@ -388,7 +379,6 @@
 
             document.getElementById('selectedDeviceTitle').textContent = `📱 ${selectedBrand} – ${selectedModel}`;
             
-            // Rangos base según tipo de dispositivo
             const gamaBaja = selectedModel.match(/A0[5-7]|C5[13]|C6[13]|Y0|Y1|Smart|Spark|Hot [34]/i);
             const gamaAlta = selectedModel.match(/Pro|Ultra|Edge|Find|X[0-9]+|S2[4-5]|iPhone 1[4-6]|GT|Pura|Mate/i);
 
@@ -400,15 +390,14 @@
             document.getElementById('valRedDot').textContent = getRandomInt(140, 195);
             document.getElementById('val2x').textContent = getRandomInt(120, 185);
             document.getElementById('val4x').textContent = getRandomInt(100, 170);
-            document.getElementById('valSniper').textContent = getRandomInt(60, 120);
-            document.getElementById('valAwm').textContent = getRandomInt(40, 100);
+            document.getElementById('valSniper').textContent = getRandomInt(40, 100);
             document.getElementById('valCam360').textContent = getRandomInt(130, 200);
             
             if (selectedBrand === 'iPhone') {
                 document.getElementById('valDpi').textContent = 'Ajuste máximo (iOS)';
             } else {
                 const minDpi = getRandomInt(rangoDpiMin[0], rangoDpiMin[1]);
-                const maxDpi = minDpi + getRandomInt(rangoDpiMax[0] - minDpi, rangoDpiMax[1] - minDpi);
+                const maxDpi = minDpi + getRandomInt(80, 160);
                 document.getElementById('valDpi').textContent = `${minDpi} - ${maxDpi} DPI`;
             }
 
